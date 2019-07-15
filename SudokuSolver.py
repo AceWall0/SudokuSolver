@@ -29,93 +29,88 @@ class Cell:
         return repr(self.value)
 
 
-def load_game(n=1):
-    with open('games.txt') as f:
-        # skip lines
-        for i in range((n-1)*10): f.readline()
-        print(f.readline())
+class Sudoku:
+    def solve1(self):
+        i = 0
+        direction = 1
+        while i < 81:
+            cell = self.cells[i]
+            if cell.fixed:
+                i += direction
+                continue
 
-        out = []
-        while len(out) < 81:
-            v = f.read(1)
-            if v != '\n':
-                out.append(int(v))
-    print(out)
-    return out
+            available = self.__filter_options(cell)
+            if available:
+                val  = choice(available)
+                cell.value = val
+                cell.memory.append(val)
+                direction = 1
 
+            else:
+                cell.value = 0
+                cell.memory = []
+                direction = -1
 
-def parse_game(char):
-    i = 0
-    while i < 81:
-        if char != '\n':
-            i += 1
-            yield int(char)
-
-
-def main(game_number=0):
-
-    if game_number > 0:
-        solve = True
-        game = load_game(game_number)
-    else:
-        solve = False
-        game = (0,)*81
-
-    cells = tuple(Cell(game[i]) for i in range(81))
-
-    rows   = tuple(CellList(None for _x in range(9)) for _y in range(9))
-    cols   = tuple(CellList(None for _x in range(9)) for _y in range(9))
-    blocks = tuple(CellList(None for _x in range(9)) for _y in range(9))
-
-    for i in range(81):
-        x = i % 9
-        y = i //9
-        b0 = (x //3) + (y //3)*3
-        b1 = (x % 3) + (y % 3)*3
-
-        cells[i].row = rows[y]
-        cells[i].row[x] = cells[i]
-
-        cells[i].column = cols[x]
-        cells[i].column[y] = cells[i]
-
-        cells[i].block = blocks[b0]
-        cells[i].block[b1] = cells[i]
-
-        if solve and cells[i].value != 0:
-            cells[i].fixed = True
-
-    options = tuple(range(1, 10))
-
-    i = 0
-    direction = 1
-    while i < 81:
-        cell = cells[i]
-
-        if cell.fixed:
             i += direction
-            continue
 
-        available = tuple(x for x in options if x not in cell.memory)
-        available = tuple(x for x in available if x not in cell.row)
-        available = tuple(x for x in available if x not in cell.column)
-        available = tuple(x for x in available if x not in cell.block)
 
-        if available:
-            val = choice(available)
-            cell.value = val
-            cell.memory.append(val)
-            direction = 1
+    def generate(self):
+        self._build()
+        self.solve1()
 
-        else:
-            cell.value = 0
-            cell.memory = []
-            direction = -1
 
-        i += direction
+    def __filter_options(self, c):
+        options = tuple(range(1, 10))
+        output = tuple(x for x in options if x not in c.memory)
+        output = tuple(x for x in output if x not in c.row)
+        output = tuple(x for x in output if x not in c.column)
+        output = tuple(x for x in output if x not in c.block)
+        return output
 
-    print(*rows, sep='\n')
+
+    def load_game(self, game_number: int, game_file='games.txt'):
+        with open(game_file) as f:
+            for i in range((game_number-1)*10): f.readline()
+            f.readline()
+
+            numbers = []
+            while len(numbers) < 81:
+                v = f.read(1)
+                if v != '\n':
+                    numbers.append(int(v))
+        self._build(numbers, True)
+
+
+    def _build(self, nums=(0,)*81, solve_mode=False):
+        self.cells  = tuple(Cell(nums[i]) for i in range(81))
+        self.rows   = tuple(CellList(None for _x in range(9)) for _y in range(9))
+        self.cols   = tuple(CellList(None for _x in range(9)) for _y in range(9))
+        self.blocks = tuple(CellList(None for _x in range(9)) for _y in range(9))
+
+        for i in range(81):
+            x = i % 9
+            y = i //9
+            b0 = (x //3) + (y //3)*3
+            b1 = (x % 3) + (y % 3)*3
+
+            self.cells[i].row = self.rows[y]
+            self.cells[i].row[x] = self.cells[i]
+
+            self.cells[i].column = self.cols[x]
+            self.cells[i].column[y] = self.cells[i]
+
+            self.cells[i].block = self.blocks[b0]
+            self.cells[i].block[b1] = self.cells[i]
+
+            if solve_mode and self.cells[i].value != 0:
+                self.cells[i].fixed = True
+
+
+    def print(self):
+        print(*self.rows, sep='\n')
 
 
 if __name__ == '__main__':
-    main(2)
+    a = Sudoku()
+    a.generate()
+    a.print()
