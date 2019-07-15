@@ -12,12 +12,38 @@ def g(i):
     y = i // 9
     return (x%3) + (y%3)*3
 
+def testTime():
+    # a = Sudoku()
+    # times = []
+    # for i in range(1, 21):
+    #     a.open_game(i)
+    #     times.append(t.timeit(a.solve1, number=1))
+    #     print(i, '=', times[-1])
+    #
+    # print(f'Average: {s.mean(times)}\n')
 
-game = Sudoku()
-times = []
-for i in range(10):
-    game.load_game(i)
-    times.append(t.timeit(game.solve1, number=1))
-    print(times[-1])
+    b = Sudoku()
+    times = []
+    for i in range(1, 51):
+        b.open_game(i)
+        times.append(t.timeit(b.solve2, number=1))
+        print(i, '=', times[-1])
 
-print(f'Average: {s.mean(times)}')
+    print(f'Average: {s.mean(times)}\n')
+
+
+
+def testSudoku():
+    a = Sudoku()
+    a.open_game(1)
+    a.solve2()
+
+    print()
+
+    b = Sudoku()
+    b.open_game(1)
+    b.solve1()
+
+
+if __name__ == '__main__':
+    testTime()

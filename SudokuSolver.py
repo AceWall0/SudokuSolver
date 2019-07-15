@@ -1,5 +1,5 @@
-from random import choice
-
+from random import choice, seed
+seed(1)
 
 class CellList(list):
     """
@@ -17,16 +17,19 @@ class Cell:
     row: CellList
     column: CellList
     block: CellList
+    _id = 0
 
     def __init__(self, v=0):
         self.value = v
         self.memory = []
+        self._id = Cell._id
+        Cell._id += 1
 
     def __str__(self):
-        return str(self.value)
+        return self.__repr__()
 
     def __repr__(self):
-        return repr(self.value)
+        return f"Cell(value={self.value}, id={self._id})"
 
 
 class Sudoku:
@@ -53,6 +56,72 @@ class Sudoku:
 
             i += direction
 
+    def solve2(self):
+        """
+        Solves the game previously builded.
+        This solution tries to minimize the number of backtracking by putting the values in the cells with the smaller
+        values available
+        """
+
+        k = 0               # used for backtracking
+        steps = []
+        guesses = []        # what k values the algorithm made a guess
+        guess_thr = 1       # the minimal number of available it should guess
+        last_ind = -1       # the last index where a value was changed
+        completed = False   # has the code been completed?
+
+        while not completed:
+            completed = True
+
+            while True:
+                i = k % 81
+
+                # has made a entire loop without changing a value
+                if i == last_ind: guess_thr += 1
+
+                cell = self.cells[i]
+                if cell.value == 0:
+                    completed = False  # there is still values to fill
+
+                    available = self.__filter_options(cell)
+                    if 0 < len(available) <= guess_thr:
+                        val = available[0]
+                        cell.value = val
+                        cell.memory.append(val)
+                        steps.append(k)
+                        last_ind = i
+
+                        # A guess was made
+                        if guess_thr > 1:
+                            guesses.append(k)
+                            guess_thr -= 1
+
+                    # There is no more option to the cell, so it should revert everything till
+                    # the last k where a guess was made
+                    elif len(available) == 0:
+                        last_k = guesses.pop()
+                        while k >= last_k:
+                            i = k % 81
+                            cell = self.cells[i]
+                            cell.value = 0
+
+                            if k == last_k: break
+
+                            cell.memory = []
+                            last_ind = i
+                            k = steps.pop()
+                        continue
+
+                k += 1
+                if i == 80: break
+
+            if last_ind == -1:
+                if guess_thr == 9:
+                    raise RuntimeError("No solution for this game.")
+
+                guess_thr += 1
+
+
 
     def generate(self):
         self._build()
@@ -68,7 +137,8 @@ class Sudoku:
         return output
 
 
-    def load_game(self, game_number: int, game_file='games.txt'):
+    def open_game(self, game_number: int, game_file='games.txt'):
+        assert game_number >= 1
         with open(game_file) as f:
             for i in range((game_number-1)*10): f.readline()
             f.readline()
@@ -110,7 +180,24 @@ class Sudoku:
         print(*self.rows, sep='\n')
 
 
+    def __str__(self):
+        out = ''
+        for i in range(9):
+            if i%3 == 0:
+                out += '+' + '---+'*3 + '\n'
+
+            for j in range(9):
+                if j%3 == 0:
+                    out += '|'
+                out += str(self.rows[i][j].value)
+
+            out += '|\n'
+        out += '+' + '---+' * 3 + '\n'
+        return out
+
+
 if __name__ == '__main__':
     a = Sudoku()
-    a.generate()
-    a.print()
+    a.open_game(1)
+    a.solve2()
+    print(a)
