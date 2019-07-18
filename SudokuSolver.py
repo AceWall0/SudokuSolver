@@ -36,7 +36,7 @@ class Cell:
 
 class Sudoku:
     def solve1(self):
-        """Can be used to solve, but is mainly used to generate games. For solving, use solve2() method. It is about
+        """Can be used to solve, but is mainly used to generate games. For solving, use solve() method. It is about
         33x faster, up to more than 500x times faster"""
         i = 0
         direction = 1
@@ -61,7 +61,7 @@ class Sudoku:
             i += direction
 
 
-    def solve2(self):
+    def solve(self):
         """
         Solves the game previously builded.
         This solution tries to minimize the number of backtracking by putting the values in the cells with the smaller
@@ -145,7 +145,7 @@ class Sudoku:
         return output
 
 
-    def open_game(self, game_number: int, game_file='games.txt'):
+    def open(self, game_number: int = 1, game_file='games.txt'):
         """
         :param game_number: A integer number of tha game inside the file
         :param game_file: The file to look for the game.
@@ -227,11 +227,11 @@ class Sudoku:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("grid_number", type=int, help="Grid number from the given file to solve")
+    parser.add_argument("-n", "--grid_number", type=int, help="Grid number from the given file to solve", default=1)
     parser.add_argument("-f", "--filename", help="The file to look for the games", type=str, default='games.txt')
     args = parser.parse_args()
 
     a = Sudoku()
-    a.open_game(args.grid_number, args.filename)
-    a.solve2()
+    a.open(args.grid_number, args.filename)
+    a.solve()
     print(a)

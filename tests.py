@@ -16,7 +16,7 @@ def testTime():
     # a = Sudoku()
     # times = []
     # for i in range(1, 21):
-    #     a.open_game(i)
+    #     a.open(i)
     #     times.append(t.timeit(a.solve1, number=1))
     #     print(i, '=', times[-1])
     #
@@ -25,8 +25,8 @@ def testTime():
     b = Sudoku()
     times = []
     for i in range(1, 51):
-        b.open_game(i)
-        times.append(t.timeit(b.solve2, number=1))
+        b.open(i)
+        times.append(t.timeit(b.solve, number=1))
         print(i, '=', times[-1])
 
     print(f'Average: {s.mean(times)}\n')
@@ -35,13 +35,13 @@ def testTime():
 
 def testSudoku():
     a = Sudoku()
-    a.open_game(1)
-    a.solve2()
+    a.open(1)
+    a.solve()
 
     print()
 
     b = Sudoku()
-    b.open_game(1)
+    b.open(1)
     b.solve1()
 
 
