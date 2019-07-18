@@ -1,10 +1,10 @@
 from random import choice, seed
-seed(1)
 
 class CellList(list):
     """
     A list that when the "in" operator is called, looks for the item in the .value property of the elements in the list,
-    as oppose to looking for the elements of the list"""
+    as oppose to looking for the elements of the list
+    """
 
     def __contains__(self, item):
         for obj in self:
@@ -34,6 +34,8 @@ class Cell:
 
 class Sudoku:
     def solve1(self):
+        """Can be used to solve, but is mainly used to generate games. For solving, use solve2() method. It is about
+        33x faster, up to more than 500x times faster"""
         i = 0
         direction = 1
         while i < 81:
@@ -56,6 +58,7 @@ class Sudoku:
 
             i += direction
 
+
     def solve2(self):
         """
         Solves the game previously builded.
@@ -63,10 +66,10 @@ class Sudoku:
         values available
         """
 
-        k = 0               # used for backtracking
-        steps = []
-        guesses = []        # what k values the algorithm made a guess
-        guess_thr = 1       # the minimal number of available it should guess
+        k = 0
+        steps = []          # keep track of wich 'k' values was made a modification
+        guesses = []        # what 'k' values the algorithm made a guess
+        guess_thr = 1       # minimal number of options to start guessing
         last_ind = -1       # the last index where a value was changed
         completed = False   # has the code been completed?
 
@@ -77,7 +80,9 @@ class Sudoku:
                 i = k % 81
 
                 # has made a entire loop without changing a value
-                if i == last_ind: guess_thr += 1
+                if i == last_ind:
+                    guess_thr += 1
+
 
                 cell = self.cells[i]
                 if cell.value == 0:
@@ -96,6 +101,7 @@ class Sudoku:
                             guesses.append(k)
                             guess_thr -= 1
 
+
                     # There is no more option to the cell, so it should revert everything till
                     # the last k where a guess was made
                     elif len(available) == 0:
@@ -111,24 +117,25 @@ class Sudoku:
                             last_ind = i
                             k = steps.pop()
                         continue
-
                 k += 1
                 if i == 80: break
 
             if last_ind == -1:
                 if guess_thr == 9:
                     raise RuntimeError("No solution for this game.")
-
                 guess_thr += 1
 
 
 
-    def generate(self):
+    def generate(self, game_seed=None):
+        """Builds a new game with all the cells filled"""
+        seed(game_seed)
         self._build()
         self.solve1()
 
 
     def __filter_options(self, c):
+        """What values can the cell 'c' have?"""
         options = tuple(range(1, 10))
         output = tuple(x for x in options if x not in c.memory)
         output = tuple(x for x in output if x not in c.row)
@@ -138,7 +145,30 @@ class Sudoku:
 
 
     def open_game(self, game_number: int, game_file='games.txt'):
+        """
+        :param game_number: A integer number of tha game inside the file
+        :param game_file: The file to look for the game.
+
+        Each game should be compose of the title and the rows of numbers, with the number 0 to
+        represent empty cells. \n
+        Exemple: \n
+        "\n
+        Grid 01\n
+        003020600\n
+        900305001\n
+        001806400\n
+        008102900\n
+        700000008\n
+        006708200\n
+        002609500\n
+        800203009\n
+        005010300\n
+        "\n
+        """
+
+        assert type(game_number) == int
         assert game_number >= 1
+
         with open(game_file) as f:
             for i in range((game_number-1)*10): f.readline()
             f.readline()
@@ -152,6 +182,8 @@ class Sudoku:
 
 
     def _build(self, nums=(0,)*81, solve_mode=False):
+        """Used internally to construct the cells and their relationships"""
+
         self.cells  = tuple(Cell(nums[i]) for i in range(81))
         self.rows   = tuple(CellList(None for _x in range(9)) for _y in range(9))
         self.cols   = tuple(CellList(None for _x in range(9)) for _y in range(9))
@@ -174,10 +206,6 @@ class Sudoku:
 
             if solve_mode and self.cells[i].value != 0:
                 self.cells[i].fixed = True
-
-
-    def print(self):
-        print(*self.rows, sep='\n')
 
 
     def __str__(self):
