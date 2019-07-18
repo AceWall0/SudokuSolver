@@ -1,4 +1,6 @@
 from random import choice, seed
+import argparse
+
 
 class CellList(list):
     """
@@ -126,7 +128,6 @@ class Sudoku:
                 guess_thr += 1
 
 
-
     def generate(self, game_seed=None):
         """Builds a new game with all the cells filled"""
         seed(game_seed)
@@ -225,7 +226,12 @@ class Sudoku:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("grid_number", type=int, help="Grid number from the given file to solve")
+    parser.add_argument("-f", "--filename", help="The file to look for the games", type=str, default='games.txt')
+    args = parser.parse_args()
+
     a = Sudoku()
-    a.open_game(1)
+    a.open_game(args.grid_number, args.filename)
     a.solve2()
     print(a)
